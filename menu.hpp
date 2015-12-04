@@ -6,27 +6,22 @@
 
 class Menu
 {
-	enum Rect
-	{
-		Rect_One=0,
-		Rect_Two=1,
-		Rect_Three=2,
-		Rect_Four=3,
-		Rect_Total=4
-	};
-
 	SDL_Renderer *renderer;
 	SDL_Texture *texture;
 	SDL_Texture *ttexture;
-	SDL_Rect rect[Rect_Total];
+	SDL_Rect *rect;
 
 	TTF_Font *font;
 	bool quit;
-	int newrect;
-	void second(std::string context,SDL_Color color);
+	int selected;
 	void MsgLoop();
 	void Render();
+
+	const char **items;
+	const int nItems;
 public:
+	Menu(const char *[], int);
+	~Menu();
 	void Init(SDL_Window *);
 	void Quit();
 	void Show();

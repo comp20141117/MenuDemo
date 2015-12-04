@@ -4,7 +4,7 @@
 #include "menu.hpp"
 
 int Screen_Width=300;
-int Screen_Height=400;
+int Screen_Height=500;
 
 SDL_Window *window=NULL;
 
@@ -34,7 +34,8 @@ int main(int argc,char *argv[])
 {
 	init();
 	
-	Menu m;
+	const char *items[] = { "first", "second", "three", "four", "five"};
+	Menu m(items, 5);
 	m.Init(window);
 	m.Show();
 	m.Quit();

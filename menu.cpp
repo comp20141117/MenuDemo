@@ -9,49 +9,45 @@ extern const int Screen_Height;
 const int Rect_Width=300;
 const int Rect_Height=100;
 
+Menu::Menu(const char *items[], int n)
+	: items(items), nItems(n) 
+{
+	rect = new SDL_Rect[n];
+}
+
+Menu::~Menu()
+{
+	delete[] rect;
+}
+
 void Menu::Init(SDL_Window *window)
 {
-	renderer = NULL;
-	texture = NULL;
-
 	renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_SOFTWARE);
 	SDL_SetRenderDrawColor(renderer,0xFF,0xFF,0xFF,0xFF);
 	texture=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGB555,SDL_TEXTUREACCESS_TARGET,Screen_Width,Screen_Height);
-	ttexture=NULL;
 
-	for(int i=0;i<Rect_Total;i++)
+	for(int i=0;i<nItems;i++)
 	{
+		rect[i].x=0;
+		rect[i].y=i*Rect_Height;
 		rect[i].w=Rect_Width;
 		rect[i].h=Rect_Height;
 	}
 
-	font = NULL;
 	font = TTF_OpenFont("bay6.ttf",28);
-
-	quit = false;
-	newrect = 0;
 }
 
 void Menu::Quit()
 {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyTexture(texture);
-	SDL_DestroyTexture(ttexture);
 	TTF_CloseFont(font);
-	ttexture=NULL;
-}
-
-void Menu::second(std::string context,SDL_Color color)
-{
-	if(ttexture!=NULL)
-		SDL_DestroyTexture(ttexture);
-	SDL_Surface *surface=TTF_RenderText_Solid(font,context.c_str(),color);
-	ttexture=SDL_CreateTextureFromSurface(renderer,surface);
-	SDL_FreeSurface(surface);
 }
 
 void Menu::Show()
 {
+	quit = false;
+	selected = 0;
 	while(!quit) {
 		MsgLoop();
 		Render();
@@ -70,10 +66,10 @@ void Menu::MsgLoop()
 		{
 			int x,y;
 			SDL_GetMouseState(&x,&y);
-			for(int i=0;i<Rect_Total;i++)
+			for(int i=0;i<nItems;i++)
 			{
 				if(y>=i*Rect_Height && y<=(i+1)*Rect_Height)
-					newrect=i;
+					selected=i;
 			}
 		}
 		else if(event.type==SDL_KEYDOWN)
@@ -81,62 +77,50 @@ void Menu::MsgLoop()
 			switch(event.key.keysym.sym)
 			{
 				case SDLK_UP:
-					newrect--;
+					selected--;
 					break;
 				case SDLK_DOWN:
-					newrect++;
+					selected++;
 					break;
 			}
-			if(newrect<0)
-				newrect=3;
-			if(newrect>3)
-				newrect=0;
+			if(selected<0)
+				selected=nItems - 1;
+			if(selected==nItems)
+				selected=0;
 		}
 	}
 }
 
 void Menu::Render()
 {
-	SDL_Color color;
-
-	for(int i=0;i<Rect_Total;i++)
-	{
-		rect[i].x=0;
-		rect[i].y=i*Rect_Height;
-	}
 	SDL_SetRenderTarget(renderer,texture);
 	SDL_SetRenderDrawColor(renderer,0xFF,0xFF,0xFF,0xFF);
 	SDL_RenderClear(renderer);
-	for(int i=0;i<Rect_Total;i++)
+	for(int i=0;i<nItems;i++)
 	{
 		SDL_RenderDrawRect(renderer,&rect[i]);
 		SDL_SetRenderDrawColor(renderer,0xFF,0xFF,0xFF,0xFF);
 		SDL_RenderFillRect(renderer,&rect[i]);
 	}
-	SDL_RenderDrawRect(renderer,&rect[newrect]);
+	SDL_RenderDrawRect(renderer,&rect[selected]);
 	SDL_SetRenderDrawColor(renderer,0x00,0x00,0xFF,0xFF);
-	SDL_RenderFillRect(renderer,&rect[newrect]);
+	SDL_RenderFillRect(renderer,&rect[selected]);
 
 	SDL_SetRenderTarget(renderer,NULL);
 	SDL_RenderCopy(renderer,texture,NULL,NULL);
 
-	SDL_Rect *clip=NULL;
-	double angle=0.0;
-	SDL_Point *center=NULL;
-	SDL_RendererFlip flip=SDL_FLIP_NONE;
+	for(int i = 0; i < nItems; i++) {
+		SDL_Texture *ttexture;
+		SDL_Color color={0,0,0};
+		SDL_Surface *surface =
+			TTF_RenderText_Solid(font,items[i], color);
+		ttexture=SDL_CreateTextureFromSurface(renderer,surface);
+		SDL_FreeSurface(surface);
 
-	second("first",color);
-	SDL_Rect rect_1={0,0,Rect_Width,Rect_Height};
-	SDL_RenderCopyEx(renderer,ttexture,clip,&rect_1,angle,center,flip);
-	second("second",color);
-	SDL_Rect rect_2={0,Rect_Height,Rect_Width,Rect_Height};
-	SDL_RenderCopyEx(renderer,ttexture,clip,&rect_2,angle,center,flip);
-	second("three",color);
-	SDL_Rect rect_3={0,2*Rect_Height,Rect_Width,Rect_Height};
-	SDL_RenderCopyEx(renderer,ttexture,clip,&rect_3,angle,center,flip);
-	second("four",color);
-	SDL_Rect rect_4={0,3*Rect_Height,Rect_Width,Rect_Height};
-	SDL_RenderCopyEx(renderer,ttexture,clip,&rect_4,angle,center,flip);
+		SDL_Rect rect = { 0, Rect_Height * i, Rect_Width, Rect_Height };	
+		SDL_RenderCopyEx(renderer,ttexture,NULL,&rect,0.0,NULL,SDL_FLIP_NONE);
+		SDL_DestroyTexture(ttexture);
+	}
 	
 	SDL_RenderPresent(renderer);
 }

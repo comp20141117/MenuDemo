@@ -1,4 +1,5 @@
 .PHONY: all clean
+CXXFLAGS=-O2 -Wall
 OBJS=main.o menu.o
 
 all: menu
@@ -7,10 +8,10 @@ menu: $(OBJS)
 	g++ -o menu $(OBJS) -lSDL2 -lSDL2_ttf
 
 main.o: main.cpp
-	g++ -O2 -c main.cpp
+	g++ $(CXXFLAGS) -c main.cpp
 
 menu.o: menu.cpp menu.hpp
-	g++ -O2 -c menu.cpp
+	g++ $(CXXFLAGS) -c menu.cpp
 
 clean:
 	rm menu $(OBJS)
