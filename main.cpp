@@ -63,7 +63,7 @@ void second(std::string context,SDL_Color color)
 int main(int argc,char *argv[])
 {
 	init();
-	font=TTF_OpenFont("ex/bay6.ttf",28);
+	font=TTF_OpenFont("bay6.ttf",28);
 	SDL_Color color={0,0,0};
 	SDL_Event event;
 	bool quit=false;
