@@ -1,5 +1,5 @@
-#ifndef __MENU_HPP__
-#define __MENU_HPP__
+#ifndef _MENU_HPP_
+#define _MENU_HPP_
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
@@ -15,4 +15,3 @@ typedef struct _MENU_CONFIG
 
 extern int show_menu(MENU_CONFIG *, SDL_Window *, int, int);
 #endif
-
