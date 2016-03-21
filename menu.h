@@ -11,7 +11,7 @@ typedef struct _ITEM_LIST
 	int num_items;
 }ITEM_LIST;
 
-struct ITEM
+struct _ITEM
 {
 	int id;
 	const char *text;
