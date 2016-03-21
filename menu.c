@@ -92,12 +92,12 @@ static void render(MENU_CONFIG *config, TTF_Font *font,
 	SDL_RenderClear(renderer);
 
 	if(Show_Menu_Flag){
-		for(i = 0; i < config->num_items; i++){ 
+		for(i = 0; i < config->item_list->num_items; i++){ 
 			rect[i].x = Rect_Pos_x; 
 			rect[i].y = Rect_Pos_y + (i * Rect_Height); 
 		} 
 
-		for(i = 0; i < config->num_items; i++){ 
+		for(i = 0; i < config->item_list->num_items; i++){ 
 			SDL_RenderDrawRect(renderer, &rect[i]); 
 			SDL_SetRenderDrawColor(renderer, 
 					       config->color_background.r, 
@@ -114,19 +114,19 @@ static void render(MENU_CONFIG *config, TTF_Font *font,
 				       config->color_highlight.a); 
 		SDL_RenderFillRect(renderer, &rect[selected]); 
 
-		for(i = 0; i < config->num_items; i++){ 
+		for(i = 0; i < config->item_list->num_items; i++){ 
 			SDL_Texture *ttexture; 
 			SDL_Color color = {0, 0, 0}; 
 			SDL_Surface *surface; 
 			SDL_Rect rect; 
 
-			surface = TTF_RenderText_Solid(font, config->items[i], color); 
+			surface = TTF_RenderText_Solid(font, config->item_list->items[i].text, color); 
 			ttexture = SDL_CreateTextureFromSurface(renderer, surface); 
 			SDL_FreeSurface(surface); 
 
 			rect.x = Rect_Pos_x; 
 			rect.y = Rect_Pos_y + (Rect_Height * i); 
-			TTF_SizeText(font, config->items[i], &rect.w, &rect.h); 
+			TTF_SizeText(font, config->item_list->items[i].text, &rect.w, &rect.h); 
 
 			SDL_RenderCopyEx(renderer, ttexture, NULL, &rect, 
 					 0.0, NULL, SDL_FLIP_NONE); 
@@ -154,15 +154,15 @@ int show_menu(MENU_CONFIG *config, SDL_Window *window, int x, int y)
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB555,
 				    SDL_TEXTUREACCESS_TARGET,
 				    Screen_Width, Screen_Height);
-	rect = (SDL_Rect *)malloc(sizeof(SDL_Rect) * config->num_items);
-	for(i = 0; i < config->num_items; i++){
+	rect = (SDL_Rect *)malloc(sizeof(SDL_Rect) * config->item_list->num_items);
+	for(i = 0; i < config->item_list->num_items; i++){
 		rect[i].x = Rect_Pos_x;
 		rect[i].y = Rect_Pos_y + (i * Rect_Height);
 		rect[i].w = Rect_Width;
 		rect[i].h = Rect_Height;
 	}
 
-	while(msg_loop(config->num_items, &selected, rect)){
+	while(msg_loop(config->item_list->num_items, &selected, rect)){
 		render(config, font, renderer, texture, selected, rect);
 	}
 	free(rect);

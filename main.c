@@ -46,8 +46,18 @@ void clean()
 
 int main(int argc,char *argv[])
 {
-	const char *items[] = {"one", "two", "three", "four", "five"};
-	MENU_CONFIG config = {items, 5, "bay6.ttf", 28,
+  	ITEM items[] =
+		{
+			{0, "font size", NULL},
+			{1, "background color", NULL},
+			{2, "normal color", NULL},
+			{3, "highlgiht color", NULL},
+			{4, "exit", NULL}
+		};
+
+	ITEM_LIST item_list = {items, 5};
+
+	MENU_CONFIG config = {&item_list, "bay6.ttf", 28,
 			    {0x41, 0x69, 0xE1, 0xFF},
 			    {0xE6, 0xE6, 0xFA, 0xFF}};
 
