@@ -14,7 +14,7 @@ int Rect_Pos_y = 0;
 
 int Show_Menu_Flag = 0;
 
-int PointInRect(const SDL_Point p, const SDL_Rect r)
+int PointInRect(SDL_Point p, SDL_Rect r)
 {
   	if(p.x >= r.x && p.x <= (r.x + r.w)){
 	  	if(p.y >= r.y && p.y <=(r.y + r.h))
@@ -23,6 +23,18 @@ int PointInRect(const SDL_Point p, const SDL_Rect r)
 		  	return 0;
 	} else
 	  	return 0;
+}
+
+int RenderFillRect(SDL_Renderer *renderer, SDL_Rect rect, SDL_Color color)
+{
+	SDL_RenderDrawRect(renderer, &rect); 
+	SDL_SetRenderDrawColor(renderer, 
+			       color.r, 
+			       color.g, 
+			       color.b, 
+			       color.a); 
+	SDL_RenderFillRect(renderer, &rect);
+	return 1;
 }
 
 static int msg_loop(int num_items, int *p_selected, SDL_Rect *rect)
@@ -88,7 +100,11 @@ static void render(MENU_CONFIG *config, TTF_Font *font,
 {
 	int i;
 	SDL_SetRenderTarget(renderer, texture);
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_SetRenderDrawColor(renderer,
+			       config->color_background.r,
+			       config->color_background.g,
+			       config->color_background.b,
+			       config->color_background.a);
 	SDL_RenderClear(renderer);
 
 	if(Show_Menu_Flag){
@@ -97,22 +113,9 @@ static void render(MENU_CONFIG *config, TTF_Font *font,
 			rect[i].y = Rect_Pos_y + (i * Rect_Height); 
 		} 
 
-		for(i = 0; i < config->item_list->num_items; i++){ 
-			SDL_RenderDrawRect(renderer, &rect[i]); 
-			SDL_SetRenderDrawColor(renderer, 
-					       config->color_background.r, 
-					       config->color_background.g, 
-					       config->color_background.b, 
-					       config->color_background.a); 
-			SDL_RenderFillRect(renderer, &rect[i]); 
-		} 
-		SDL_RenderDrawRect(renderer, &rect[selected]); 
-		SDL_SetRenderDrawColor(renderer, 
-				       config->color_highlight.r, 
-				       config->color_highlight.g, 
-				       config->color_highlight.b, 
-				       config->color_highlight.a); 
-		SDL_RenderFillRect(renderer, &rect[selected]); 
+		for(i = 0; i < config->item_list->num_items; i++)
+			RenderFillRect(renderer, rect[i], config->color_text);
+		RenderFillRect(renderer, rect[selected], config->color_highlight);
 
 		for(i = 0; i < config->item_list->num_items; i++){ 
 			SDL_Texture *ttexture; 

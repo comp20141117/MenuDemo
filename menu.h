@@ -24,7 +24,8 @@ typedef struct _MENU_CONFIG
 	const char *font_file;
 	int font_size;
 	SDL_Color color_highlight;
-	SDL_Color color_background;
+	SDL_Color color_text;
+        SDL_Color color_background;
 } MENU_CONFIG;
 
 extern int show_menu(MENU_CONFIG *, SDL_Window *, int, int);

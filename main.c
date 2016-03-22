@@ -48,18 +48,19 @@ int main(int argc,char *argv[])
 {
   	ITEM items[] =
 		{
-			{0, "font size", NULL},
-			{1, "background color", NULL},
-			{2, "normal color", NULL},
-			{3, "highlgiht color", NULL},
+			{0, "font", NULL},
+			{1, "bg color", NULL},
+			{2, "txt color", NULL},
+			{3, "hl color", NULL},
 			{4, "exit", NULL}
 		};
 
 	ITEM_LIST item_list = {items, 5};
 
-	MENU_CONFIG config = {&item_list, "bay6.ttf", 28,
-			    {0x41, 0x69, 0xE1, 0xFF},
-			    {0xE6, 0xE6, 0xFA, 0xFF}};
+	MENU_CONFIG config = {&item_list, "bay6.ttf", 24,
+			      {0xFF, 0x66, 0x00, 0xFF},
+			      {0xCC, 0xCC, 0xFF, 0xFF},
+			      {0xFF, 0xFF, 0xFF, 0xFF}};
 
 	if(!init()){
 		return 1;
