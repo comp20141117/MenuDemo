@@ -175,3 +175,4 @@ int show_menu(MENU_CONFIG *config, SDL_Window *window, int x, int y)
 
 	return selected;
 }
+

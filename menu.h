@@ -29,4 +29,37 @@ typedef struct _MENU_CONFIG
 } MENU_CONFIG;
 
 extern int show_menu(MENU_CONFIG *, SDL_Window *, int, int);
+
+struct MenuItem;
+
+struct MenuItemList
+{
+	MenuItem *items;
+	int numItems;
+};
+
+struct MenuItem
+{
+	int id;
+	const char *text;
+	MenuItemList *subItemList;
+};
+
+struct Menu
+{
+	MenuItemList *itemList;
+	const char *fontFile;
+	int fontSize;
+	SDL_Color highlightColor, backgroundColor;
+};
+
+class MenuExecutor
+{
+public:
+	MenuExecutor(Menu *menu) : m_menu(menu) { }
+
+private:
+	Menu *m_menu;
+};
+
 #endif

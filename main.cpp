@@ -3,8 +3,8 @@
 #include <SDL2/SDL_ttf.h>
 #include "menu.h"
 
-int Screen_Width = 600;
-int Screen_Height = 480;
+extern const int Screen_Width = 600;
+extern const int Screen_Height = 480;
 
 SDL_Window *window = NULL;
 
