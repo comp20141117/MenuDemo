@@ -54,30 +54,6 @@ void clean()
 
 int main(int argc,char *argv[])
 {
-#if 0
-  	ITEM items[] =
-		{
-			{0, "font", NULL},
-			{1, "bg color", NULL},
-			{2, "txt color", NULL},
-			{3, "hl color", NULL},
-			{4, "exit", NULL}
-		};
-
-	ITEM_LIST item_list = {items, 5};
-
-	MENU_CONFIG config = {&item_list, "bay6.ttf", 24,
-			      {0xFF, 0x66, 0x00, 0xFF},
-			      {0xCC, 0xCC, 0xFF, 0xFF},
-			      {0xFF, 0xFF, 0xFF, 0xFF}};
-
-	if(!init()){
-		return 1;
-	}
-	show_menu(&config, window, 0, 0);
-	clean();
-#endif
-
 	if (!init())
 		return 1;
 
