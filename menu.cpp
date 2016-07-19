@@ -176,3 +176,112 @@ int show_menu(MENU_CONFIG *config, SDL_Window *window, int x, int y)
 	return selected;
 }
 
+bool MenuExecutor::init()
+{
+	m_font = TTF_OpenFont(m_menu->fontFile, m_menu->fontSize);
+	if (m_font == nullptr)
+		return false;
+
+	m_itemHeight = TTF_FontHeight(m_font);
+
+	return true;
+}
+
+void MenuExecutor::uninit()
+{
+	if (m_font != nullptr) {
+		TTF_CloseFont(m_font);
+		m_font = nullptr;
+	}
+}
+
+static SDL_Texture *RenderText(SDL_Renderer *renderer, TTF_Font *font, const char *str, SDL_Color color)
+{
+	SDL_Texture *result = nullptr;
+	SDL_Surface *surface = TTF_RenderText_Blended(font, str, color);
+	if (surface == nullptr) {
+		printf("Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError());
+	}
+	else {
+		SDL_Texture	*texture = SDL_CreateTextureFromSurface(renderer, surface);
+		if (texture == nullptr) {
+			printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
+		}
+		else {
+			result = texture;
+		}
+
+		SDL_FreeSurface(surface);
+	}
+	
+	return result;
+}
+
+void MenuExecutor::initBox(MenuBox *box, MenuItemList *itemList, int x, int y)
+{
+	int n = itemList->numItems;
+	SDL_Texture **selected = new SDL_Texture *[n];
+	SDL_Texture **unselected = new SDL_Texture *[n];
+	int width = 0;
+	int height = 0;
+
+	for (int i = 0; i < n; i++) {
+		selected[i] = RenderText(m_renderer, m_font, itemList->items[i].text, m_menu->fgColors[Menu::HIGHLIGHT]);
+		unselected[i] = RenderText(m_renderer, m_font, itemList->items[i].text, m_menu->fgColors[Menu::NORMAL]);
+
+		int w, h;
+		SDL_QueryTexture(selected[i], nullptr, nullptr, &w, &h);
+		if (w > width) width = w;
+		height += h;
+	}
+
+	width += 20;
+
+	SDL_Rect rect = { x, y, width, height };
+	
+	box->itemList = itemList;
+	box->selected = selected;
+	box->unselected = unselected;
+	box->rect = rect;
+	box->sel = 0;
+}
+
+void MenuExecutor::destroyBox(MenuBox * box)
+{
+	delete[] box->selected;
+	delete[] box->unselected;
+	delete box;
+}
+
+void MenuExecutor::drawBox(MenuBox *box)
+{
+	SDL_Color bgNormal = m_menu->bgColors[Menu::NORMAL];
+	SDL_SetRenderDrawColor(m_renderer, bgNormal.r, bgNormal.g, bgNormal.b, bgNormal.a);
+	SDL_RenderFillRect(m_renderer, &box->rect);
+
+	SDL_Color bgSelected = m_menu->bgColors[Menu::HIGHLIGHT];
+	SDL_SetRenderDrawColor(m_renderer, bgSelected.r, bgSelected.g, bgSelected.b, bgSelected.a);
+	SDL_Rect selRect = {
+		box->rect.x,
+		box->rect.y + m_itemHeight * box->sel,
+		box->rect.w,
+		m_itemHeight
+	};
+	SDL_RenderFillRect(m_renderer, &selRect);
+
+	int numItems = box->itemList->numItems;
+	SDL_Rect dstRect = { box->rect.x, box->rect.y };
+	for (int i = 0; i < numItems; i++) {
+		SDL_Texture *texture = (i == box->sel) ? box->selected[i] : box->unselected[i];
+		SDL_QueryTexture(texture, NULL, NULL, &dstRect.w, &dstRect.h);
+		SDL_RenderCopy(m_renderer, texture, nullptr, &dstRect);
+
+		dstRect.y += m_itemHeight;
+	}
+}
+
+void MenuExecutor::drawAllBoxes()
+{
+	for (auto iter = m_boxes.begin(); iter != m_boxes.end(); iter++)
+		drawBox(*iter);
+}

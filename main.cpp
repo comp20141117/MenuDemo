@@ -7,6 +7,7 @@ extern const int Screen_Width = 600;
 extern const int Screen_Height = 480;
 
 SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
 
 void print_error(const char *msg)
 {
@@ -34,11 +35,18 @@ int init()
 		return 0;
 	}
 
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	if (renderer == nullptr) {
+		print_error("create renderer fail!");
+		return 0;
+	}
+
 	return 1;
 }
 
 void clean()
 {
+	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	TTF_Quit();
 	SDL_Quit();
@@ -46,6 +54,7 @@ void clean()
 
 int main(int argc,char *argv[])
 {
+#if 0
   	ITEM items[] =
 		{
 			{0, "font", NULL},
@@ -67,5 +76,63 @@ int main(int argc,char *argv[])
 	}
 	show_menu(&config, window, 0, 0);
 	clean();
+#endif
+
+	if (!init())
+		return 1;
+
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_RenderClear(renderer);
+
+	MenuItem items1[] = 
+	{
+		{ 2, "Open", nullptr },
+		{ 3, "Save", nullptr }
+	};
+
+	MenuItemList itemList1 = { 2, items1 };
+
+	MenuItem items0[] =
+	{
+		{ 0, "File", &itemList1 },
+		{ 1, "About", nullptr }
+	};
+
+	MenuItemList itemList0 = { 2, items0 };
+
+	SDL_Color black = { 0, 0, 0 ,255 };
+	SDL_Color white = { 255, 255, 255, 255 };
+	SDL_Color orange = { 255, 127, 39, 255 };
+
+	Menu menu;
+	menu.itemList = &itemList0;
+	menu.fontFile = "bay6.ttf";
+	menu.fontSize = 16;
+	menu.fgColors[Menu::NORMAL] = orange;
+	menu.fgColors[Menu::HIGHLIGHT] = black;
+	menu.bgColors[Menu::NORMAL] = black;
+	menu.bgColors[Menu::HIGHLIGHT] = orange;
+
+	MenuExecutor e(renderer, &menu);
+	e.init();
+	
+	MenuBox *b1 = new MenuBox;
+	MenuBox *b2 = new MenuBox;
+	e.initBox(b1, menu.itemList, 10, 10);
+	e.initBox(b2, &itemList1, 80, 10);
+	b2->sel = 1;
+
+	e.boxes().push_back(b1);
+	e.boxes().push_back(b2);
+	e.drawAllBoxes();
+
+	SDL_RenderPresent(renderer);
+	SDL_Delay(3000);
+
+	e.destroyBox(b1);
+	e.uninit();
+
+	clean();
+
 	return 0;
-}	
+}
