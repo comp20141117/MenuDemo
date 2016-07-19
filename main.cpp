@@ -81,9 +81,6 @@ int main(int argc,char *argv[])
 	if (!init())
 		return 1;
 
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	SDL_RenderClear(renderer);
-
 	MenuItem items1[] = 
 	{
 		{ 2, "Open", nullptr },
@@ -120,16 +117,33 @@ int main(int argc,char *argv[])
 	MenuBox *b2 = new MenuBox;
 	e.initBox(b1, menu.itemList, 10, 10);
 	e.initBox(b2, &itemList1, 80, 10);
+	b1->sel = 0;
 	b2->sel = 1;
 
 	e.boxes().push_back(b1);
 	e.boxes().push_back(b2);
 	e.drawAllBoxes();
 
-	SDL_RenderPresent(renderer);
-	SDL_Delay(3000);
+	bool quit = false;
+	while (!quit) {
+		SDL_Event ev;
+		
+		while (SDL_PollEvent(&ev)) {
+			if (ev.type == SDL_QUIT) {
+				return 0;
+			} else {
+				e.handleEvent(ev);
+			}
+		}
 
-	e.destroyBox(b1);
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		SDL_RenderClear(renderer);
+		e.render();
+		SDL_RenderPresent(renderer);
+
+		SDL_Delay(20);
+	}
+	
 	e.uninit();
 
 	clean();

@@ -77,11 +77,16 @@ public:
 
 	bool init();
 	void uninit();
+
+	bool handleEvent(SDL_Event &e);
+	void render();
 	
 	void initBox(MenuBox *box, MenuItemList *itemList, int x, int y);
 	void destroyBox(MenuBox *box);
 	void drawBox(MenuBox *box);
 	void drawAllBoxes();
+
+	void locateItemFromPoint(int x, int y, int *pBoxIndex, int *pItemIndex);
 
 	std::vector<MenuBox *> &boxes() { return m_boxes; }
 

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <algorithm>
 #include "menu.h"
 
 extern const int Screen_Width;
@@ -189,10 +190,69 @@ bool MenuExecutor::init()
 
 void MenuExecutor::uninit()
 {
+	while (!m_boxes.empty()) {
+		destroyBox(m_boxes.back());
+		m_boxes.pop_back();
+	}
 	if (m_font != nullptr) {
 		TTF_CloseFont(m_font);
 		m_font = nullptr;
 	}
+}
+
+bool MenuExecutor::handleEvent(SDL_Event &e)
+{
+	if (e.type == SDL_MOUSEMOTION) {
+		int curBoxIndex = m_boxes.size() - 1;
+		int curItemIndex = m_boxes[curBoxIndex]->sel;
+		
+		int newBoxIndex;
+		int newItemIndex;
+
+		int x, y;
+		SDL_GetMouseState(&x, &y);
+		locateItemFromPoint(x, y, &newBoxIndex, &newItemIndex);
+		// printf("x: %d\ty = %d\tbi = %d\tni = %d\n", x, y, newBoxIndex, newItemIndex);
+
+		if (newBoxIndex == -1) {
+			m_boxes[curBoxIndex]->sel = -1;
+			return true;
+		}
+
+		if (newBoxIndex == curBoxIndex && newItemIndex == curItemIndex)
+			return true;
+
+		while (newBoxIndex < curBoxIndex) {
+			MenuBox *lastBox = m_boxes.back();
+			destroyBox(lastBox);
+			m_boxes.pop_back();
+			curBoxIndex--;
+		}
+		
+		MenuBox *newBox = m_boxes[newBoxIndex];
+		MenuItem *newItem = &newBox->itemList->items[newItemIndex];
+		if (newItem->subItemList != nullptr) {
+			// pop up its sub menu
+			MenuBox *box = new MenuBox;
+			int x = newBox->rect.x + newBox->rect.w + 5;
+			int y = newBox->rect.y + m_itemHeight * newItemIndex;
+			initBox(box, newItem->subItemList, x, y);
+			m_boxes.push_back(box);
+		}
+
+		newBox->sel = newItemIndex;
+	} else if (e.type == SDL_MOUSEBUTTONDOWN) {
+	}
+	else {
+		return false;
+	}
+
+	return true;
+}
+
+void MenuExecutor::render()
+{
+	drawAllBoxes();
 }
 
 static SDL_Texture *RenderText(SDL_Renderer *renderer, TTF_Font *font, const char *str, SDL_Color color)
@@ -243,7 +303,7 @@ void MenuExecutor::initBox(MenuBox *box, MenuItemList *itemList, int x, int y)
 	box->selected = selected;
 	box->unselected = unselected;
 	box->rect = rect;
-	box->sel = 0;
+	box->sel = -1;
 }
 
 void MenuExecutor::destroyBox(MenuBox * box)
@@ -259,15 +319,17 @@ void MenuExecutor::drawBox(MenuBox *box)
 	SDL_SetRenderDrawColor(m_renderer, bgNormal.r, bgNormal.g, bgNormal.b, bgNormal.a);
 	SDL_RenderFillRect(m_renderer, &box->rect);
 
-	SDL_Color bgSelected = m_menu->bgColors[Menu::HIGHLIGHT];
-	SDL_SetRenderDrawColor(m_renderer, bgSelected.r, bgSelected.g, bgSelected.b, bgSelected.a);
-	SDL_Rect selRect = {
-		box->rect.x,
-		box->rect.y + m_itemHeight * box->sel,
-		box->rect.w,
-		m_itemHeight
-	};
-	SDL_RenderFillRect(m_renderer, &selRect);
+	if (box->sel >= 0) {
+		SDL_Color bgSelected = m_menu->bgColors[Menu::HIGHLIGHT];
+		SDL_SetRenderDrawColor(m_renderer, bgSelected.r, bgSelected.g, bgSelected.b, bgSelected.a);
+		SDL_Rect selRect = {
+			box->rect.x,
+			box->rect.y + m_itemHeight * box->sel,
+			box->rect.w,
+			m_itemHeight
+		};
+		SDL_RenderFillRect(m_renderer, &selRect);
+	}
 
 	int numItems = box->itemList->numItems;
 	SDL_Rect dstRect = { box->rect.x, box->rect.y };
@@ -284,4 +346,25 @@ void MenuExecutor::drawAllBoxes()
 {
 	for (auto iter = m_boxes.begin(); iter != m_boxes.end(); iter++)
 		drawBox(*iter);
+}
+
+static bool pointInRect(int x, int y, SDL_Rect &rect)
+{
+	return x >= rect.x && x < (rect.x + rect.w) && y >= rect.y && y < (rect.y + rect.h);
+}
+
+void MenuExecutor::locateItemFromPoint(int x, int y, int *pBoxIndex, int *pItemIndex)
+{
+	auto iterBox = std::find_if(
+		m_boxes.begin(), m_boxes.end(),
+		[=](auto pBox) { return pointInRect(x, y, pBox->rect); });
+
+	if (iterBox == m_boxes.end()) {
+		*pBoxIndex = -1;
+		*pItemIndex = -1;
+		return;
+	}
+
+	*pBoxIndex = iterBox - m_boxes.begin();
+	*pItemIndex = (y - (*iterBox)->rect.y) / m_itemHeight;
 }
