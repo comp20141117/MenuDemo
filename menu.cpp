@@ -177,8 +177,11 @@ int show_menu(MENU_CONFIG *config, SDL_Window *window, int x, int y)
 	return selected;
 }
 
-bool MenuExecutor::init()
+bool MenuExecutor::init(SDL_Renderer *renderer, Menu *menu)
 {
+	m_renderer = renderer;
+	m_menu = menu;
+
 	m_font = TTF_OpenFont(m_menu->fontFile, m_menu->fontSize);
 	if (m_font == nullptr)
 		return false;
@@ -190,18 +193,40 @@ bool MenuExecutor::init()
 
 void MenuExecutor::uninit()
 {
-	while (!m_boxes.empty()) {
-		destroyBox(m_boxes.back());
-		m_boxes.pop_back();
-	}
+	clearBoxes();
+
+	m_renderer = nullptr;
+	m_menu = nullptr;
+
 	if (m_font != nullptr) {
 		TTF_CloseFont(m_font);
 		m_font = nullptr;
 	}
 }
 
+void MenuExecutor::activate(int x, int y)
+{
+	MenuBox *box1 = new MenuBox;
+	initBox(box1, m_menu->itemList, x, y);
+	m_boxes.push_back(box1);
+
+	m_resultItemId = -1;
+
+	m_active = true;
+}
+
+void MenuExecutor::deactivate()
+{
+	clearBoxes();
+
+	m_active = false;
+}
+
 bool MenuExecutor::handleEvent(SDL_Event &e)
 {
+	if (!m_active)
+		return false;
+
 	if (e.type == SDL_MOUSEMOTION) {
 		int curBoxIndex = m_boxes.size() - 1;
 		int curItemIndex = m_boxes[curBoxIndex]->sel;
@@ -241,17 +266,42 @@ bool MenuExecutor::handleEvent(SDL_Event &e)
 		}
 
 		newBox->sel = newItemIndex;
-	} else if (e.type == SDL_MOUSEBUTTONDOWN) {
-	}
-	else {
-		return false;
-	}
 
-	return true;
+		return true;
+	}
+	else if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
+		int x, y;
+		SDL_GetMouseState(&x, &y);
+
+		int boxIndex, itemIndex;
+		locateItemFromPoint(x, y, &boxIndex, &itemIndex);
+
+		if (boxIndex < 0) {
+			// at any time, a mouse button event happened outside will terminate menu
+			deactivate();
+		}
+		else {
+			// only if you release left mouse button on a menu item will end
+			// the menu with a result
+			if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
+				MenuItem *resultItem = &m_boxes[boxIndex]->itemList->items[itemIndex];
+				if (resultItem->subItemList == nullptr) {
+					m_resultItemId = resultItem->id;
+					deactivate();
+				}
+			}
+			return true;
+		}
+	}
+	
+	return false;
 }
 
 void MenuExecutor::render()
 {
+	if (!m_active)
+		return;
+
 	drawAllBoxes();
 }
 
@@ -346,6 +396,14 @@ void MenuExecutor::drawAllBoxes()
 {
 	for (auto iter = m_boxes.begin(); iter != m_boxes.end(); iter++)
 		drawBox(*iter);
+}
+
+void MenuExecutor::clearBoxes()
+{
+	while (!m_boxes.empty()) {
+		destroyBox(m_boxes.back());
+		m_boxes.pop_back();
+	}
 }
 
 static bool pointInRect(int x, int y, SDL_Rect &rect)

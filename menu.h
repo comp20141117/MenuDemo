@@ -69,14 +69,14 @@ struct MenuBox
 class MenuExecutor
 {
 public:
-	MenuExecutor(SDL_Renderer *renderer, Menu *menu)
-		: m_renderer(renderer)
-		, m_menu(menu)
-		, m_font(nullptr)
-	{ }
+	MenuExecutor() : m_font(nullptr), m_active(false) { }
 
-	bool init();
+	bool init(SDL_Renderer *renderer, Menu *menu);
 	void uninit();
+
+	void activate(int x, int y);
+	void deactivate();
+	bool isActive() { return m_active; }
 
 	bool handleEvent(SDL_Event &e);
 	void render();
@@ -85,10 +85,16 @@ public:
 	void destroyBox(MenuBox *box);
 	void drawBox(MenuBox *box);
 	void drawAllBoxes();
+	void clearBoxes();
 
 	void locateItemFromPoint(int x, int y, int *pBoxIndex, int *pItemIndex);
 
-	std::vector<MenuBox *> &boxes() { return m_boxes; }
+	bool hasResult() { return m_resultItemId >= 0; }
+	int popResult() {
+		int r = m_resultItemId;
+		m_resultItemId = -1;
+		return r;
+	}
 
 private:
 	SDL_Renderer *m_renderer;
@@ -97,6 +103,9 @@ private:
 
 	std::vector<MenuBox *> m_boxes;
 	int m_itemHeight;
+
+	bool m_active;
+	int m_resultItemId;
 };
 
 #endif

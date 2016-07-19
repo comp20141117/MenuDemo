@@ -110,35 +110,37 @@ int main(int argc,char *argv[])
 	menu.bgColors[Menu::NORMAL] = black;
 	menu.bgColors[Menu::HIGHLIGHT] = orange;
 
-	MenuExecutor e(renderer, &menu);
-	e.init();
-	
-	MenuBox *b1 = new MenuBox;
-	MenuBox *b2 = new MenuBox;
-	e.initBox(b1, menu.itemList, 10, 10);
-	e.initBox(b2, &itemList1, 80, 10);
-	b1->sel = 0;
-	b2->sel = 1;
-
-	e.boxes().push_back(b1);
-	e.boxes().push_back(b2);
-	e.drawAllBoxes();
+	MenuExecutor e;
+	e.init(renderer, &menu);
 
 	bool quit = false;
 	while (!quit) {
 		SDL_Event ev;
 		
 		while (SDL_PollEvent(&ev)) {
+			if (e.handleEvent(ev))
+				continue;
+
 			if (ev.type == SDL_QUIT) {
 				return 0;
-			} else {
-				e.handleEvent(ev);
+			} else if (ev.type == SDL_MOUSEBUTTONUP) {
+				if (ev.button.button == SDL_BUTTON_RIGHT) {
+					int x, y;
+					SDL_GetMouseState(&x, &y);
+					e.activate(x, y);
+				}
 			}
+		}
+
+		if (e.hasResult()) {
+			printf("Result: %d\n", e.popResult());
 		}
 
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_RenderClear(renderer);
+
 		e.render();
+
 		SDL_RenderPresent(renderer);
 
 		SDL_Delay(20);
