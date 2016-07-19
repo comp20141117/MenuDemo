@@ -59,19 +59,48 @@ int main(int argc,char *argv[])
 
 	MenuItem items1[] = 
 	{
-		{ 2, "Open", nullptr },
-		{ 3, "Save", nullptr }
+		{ 101, "Open", nullptr },
+		{ 102, "Save", nullptr },
+		{ 103, "Exit", nullptr }
 	};
+	MenuItemList itemList1 = { 3, items1 };
 
-	MenuItemList itemList1 = { 2, items1 };
+	MenuItem items2[] =
+	{
+		{ 201, "Cut",   nullptr },
+		{ 202, "Copy",  nullptr },
+		{ 203, "Paste", nullptr }
+	};
+	MenuItemList itemList2 = { 3, items2 };
+
+	MenuItem items31[] =
+	{
+		{ 399, "Feature AA", nullptr },
+	};
+	MenuItemList itemList31 = { 1, items31 };
+
+	MenuItem items3[] =
+	{
+		{ 301, "Feature A", &itemList31 },
+		{ 302, "Feature B", nullptr }
+	};
+	MenuItemList itemList3 = { 2, items3 };
+
+	MenuItem items4[] =
+	{
+		{ 401, "Help",  nullptr },
+		{ 402, "About", nullptr }
+	};
+	MenuItemList itemList4 = { 2, items4 };
 
 	MenuItem items0[] =
 	{
-		{ 0, "File", &itemList1 },
-		{ 1, "About", nullptr }
+		{ 0, "File",    &itemList1 },
+		{ 0, "Edit",    &itemList2 },
+		{ 0, "Options", &itemList3 },
+		{ 0, "Help",    &itemList4 },
 	};
-
-	MenuItemList itemList0 = { 2, items0 };
+	MenuItemList itemList0 = { 4, items0 };
 
 	SDL_Color black = { 0, 0, 0 ,255 };
 	SDL_Color white = { 255, 255, 255, 255 };
